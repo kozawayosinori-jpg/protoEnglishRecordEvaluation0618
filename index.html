@@ -75,7 +75,76 @@ function gradeReading(spoken){
     .innerText =
       missingWords.join(", ");
 }
+function normalize(text){
 
+  return text
+    .toLowerCase()
+    .replace(/[.,!?]/g,"")
+    .trim()
+    .split(/\s+/);
+
+}
+function getLCSLength(a,b){
+
+  const dp = [];
+
+  for(let i=0;i<=a.length;i++){
+
+    dp[i] = [];
+
+    for(let j=0;j<=b.length;j++){
+
+      dp[i][j] = 0;
+
+    }
+  }
+
+  for(let i=1;i<=a.length;i++){
+
+    for(let j=1;j<=b.length;j++){
+
+      if(a[i-1] === b[j-1]){
+
+        dp[i][j] =
+          dp[i-1][j-1] + 1;
+
+      }else{
+
+        dp[i][j] =
+          Math.max(
+            dp[i-1][j],
+            dp[i][j-1]
+          );
+      }
+    }
+  }
+
+  return dp[a.length][b.length];
+}
+function findMissingWords(correctWords, spokenWords){
+
+  const missing = [];
+
+  let j = 0;
+
+  for(let i=0;i<correctWords.length;i++){
+
+    if(
+      j < spokenWords.length &&
+      correctWords[i] === spokenWords[j]
+    ){
+
+      j++;
+
+    }else{
+
+      missing.push(correctWords[i]);
+
+    }
+  }
+
+  return missing;
+}  
 </script>
 
 </body>
