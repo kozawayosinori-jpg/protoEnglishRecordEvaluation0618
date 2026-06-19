@@ -52,33 +52,21 @@ function gradeReading(spoken){
       .innerText;
 
   const correctWords =
-    correct.toLowerCase()
-      .replace(/[.,!?]/g,"")
-      .split(/\s+/);
+    normalize(correct);
 
   const spokenWords =
-    spoken.toLowerCase()
-      .replace(/[.,!?]/g,"")
-      .split(/\s+/);
+    normalize(spoken);
 
-  let matchCount = 0;
-  let missingWords = [];
+  const lcsLength =
+    getLCSLength(correctWords, spokenWords);
 
-  for(let word of correctWords){
+  const score = Math.round(
+    lcsLength /
+    correctWords.length * 100
+  );
 
-    if(spokenWords.includes(word)){
-      matchCount++;
-    }else{
-      missingWords.push(word);
-    }
-
-  }
-
-  const score =
-    Math.round(
-      matchCount /
-      correctWords.length * 100
-    );
+  const missingWords =
+    findMissingWords(correctWords, spokenWords);
 
   document.getElementById("score")
     .innerText = score + " 点";
@@ -86,7 +74,6 @@ function gradeReading(spoken){
   document.getElementById("missing")
     .innerText =
       missingWords.join(", ");
-
 }
 
 </script>
