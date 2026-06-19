@@ -3,7 +3,7 @@
 <body>
 
 <h3 id="question">
-The Internet has changed our lives in many ways.
+読み込み中...
 </h3>
 
 <button onclick="startRecognition()">
@@ -22,6 +22,27 @@ The Internet has changed our lives in many ways.
 <p id="missing"></p>
 
 <script>
+
+  const GAS_URL =
+"https://script.google.com/macros/s/AKfycbzT0BMuoLv1PHHdWwxMM3ml4DOTDRkSv9SLY7bWlBdWujjuuBiR1MQ3voxPgjrij1XT/exec";
+
+window.onload = function(){
+
+  fetch(GAS_URL)
+    .then(r => r.json())
+    .then(data => {
+
+      document.getElementById("question")
+        .innerText = data.questions[0];
+
+    })
+    .catch(err => {
+
+      alert("取得エラー: " + err);
+
+    });
+
+};
 
 function startRecognition(){
 
@@ -47,7 +68,6 @@ function startRecognition(){
 
 function gradeReading(spoken){
 
-  alert("gradeReading開始");
 
   const correct =
     document.getElementById("question")
