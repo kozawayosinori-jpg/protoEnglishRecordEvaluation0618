@@ -10,7 +10,16 @@ The Internet has changed our lives in many ways.
 録音開始
 </button>
 
+<hr>
+
+<p><b>認識結果</b></p>
 <p id="result"></p>
+
+<p><b>得点</b></p>
+<p id="score"></p>
+
+<p><b>不足語</b></p>
+<p id="missing"></p>
 
 <script>
 
@@ -20,18 +29,63 @@ function startRecognition(){
     new webkitSpeechRecognition();
 
   recognition.lang = "en-US";
-
   recognition.start();
 
   recognition.onresult = function(event){
 
-    const text =
+    const spoken =
       event.results[0][0].transcript;
 
     document.getElementById("result")
-      .innerText = text;
+      .innerText = spoken;
+
+    gradeReading(spoken);
 
   };
+
+}
+
+function gradeReading(spoken){
+
+  const correct =
+    document.getElementById("question")
+      .innerText;
+
+  const correctWords =
+    correct.toLowerCase()
+      .replace(/[.,!?]/g,"")
+      .split(/\s+/);
+
+  const spokenWords =
+    spoken.toLowerCase()
+      .replace(/[.,!?]/g,"")
+      .split(/\s+/);
+
+  let matchCount = 0;
+  let missingWords = [];
+
+  for(let word of correctWords){
+
+    if(spokenWords.includes(word)){
+      matchCount++;
+    }else{
+      missingWords.push(word);
+    }
+
+  }
+
+  const score =
+    Math.round(
+      matchCount /
+      correctWords.length * 100
+    );
+
+  document.getElementById("score")
+    .innerText = score + " 点";
+
+  document.getElementById("missing")
+    .innerText =
+      missingWords.join(", ");
 
 }
 
