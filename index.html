@@ -28,9 +28,7 @@ window.onload = function(){
     .then(r => r.json())
     .then(data => {
 
-      alert("QUESTION SET START");
-
-      document.getElementById("question")
+          document.getElementById("question")
         .innerText = data.questions[0];
 
     })
