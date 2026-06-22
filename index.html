@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html>
 <body>
+  <h2>受験者情報</h2>
+
+クラス<br>
+<input id="studentClass"><br><br>
+
+出席番号<br>
+<input id="studentNumber"><br><br>
+
+氏名<br>
+<input id="studentName"><br><br>
+
+<hr>
 
 <h1>VERSION 2026-06-22-2</h1>
 
@@ -16,6 +28,53 @@
 
 <p><b>認識結果</b></p>
 <p id="result"></p>
+
+function saveResult(
+  recognitionText,
+  score,
+  missingWords
+){
+
+  fetch(GAS_URL, {
+
+    method: "POST",
+
+    body: JSON.stringify({
+
+      studentClass:
+        document.getElementById(
+          "studentClass"
+        ).value,
+
+      studentNumber:
+        document.getElementById(
+          "studentNumber"
+        ).value,
+
+      studentName:
+        document.getElementById(
+          "studentName"
+        ).value,
+
+      question:
+        document.getElementById(
+          "question"
+        ).innerText,
+
+      recognition:
+        recognitionText,
+
+      score:
+        score,
+
+      missing:
+        missingWords.join(", ")
+
+    })
+
+  });
+
+}  
 
 <script>
 
