@@ -29,18 +29,22 @@
 
 window.onload = function(){
 
- fetch(GAS_URL)
-  .then(r => r.text())
-  .then(data => {
+  alert("TEXT MODE");
 
-    alert(data);
+  fetch(GAS_URL)
+    .then(r => r.text())
+    .then(data => {
 
-  })
-  .catch(err => {
+      alert(data);
 
-    alert("取得エラー: " + err);
+    })
+    .catch(err => {
 
-  });
+      alert("取得エラー: " + err);
+
+    });
+
+};
 
 function startRecognition(){
 
