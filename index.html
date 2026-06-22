@@ -32,13 +32,19 @@ window.onload = function(){
 
   alert("TEXT MODE");
 
-  fetch(GAS_URL)
-    .then(r => r.text())
-    .then(data => {
+ fetch(GAS_URL)
+  .then(r => r.json())
+  .then(data => {
 
-      alert(data);
+    document.getElementById("question")
+      .innerText = data.questions[0];
 
-    })
+  })
+  .catch(err => {
+
+    alert("取得エラー: " + err);
+
+  });
     .catch(err => {
 
       alert("取得エラー: " + err);
