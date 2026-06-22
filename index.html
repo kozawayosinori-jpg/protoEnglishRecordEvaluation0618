@@ -36,10 +36,17 @@ window.onload = function(){
   .then(r => r.json())
   .then(data => {
 
+    alert(JSON.stringify(data));
+
     document.getElementById("question")
       .innerText = data.questions[0];
 
   })
+  .catch(err => {
+
+    alert("取得エラー: " + err);
+
+  });
   .catch(err => {
 
     alert("取得エラー: " + err);
