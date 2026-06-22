@@ -1,3 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>VERSION 2026-06-22-2</h1>
+
+<h3 id="question">
+読み込み中...
+</h3>
+
+<button onclick="startRecognition()">
+録音開始
+</button>
+
+<hr>
+
+<p><b>認識結果</b></p>
+<p id="result"></p>
+
 <script>
 
 alert("SCRIPT START");
@@ -10,10 +29,13 @@ window.onload = function(){
   alert("TEXT MODE");
 
   fetch(GAS_URL)
-    .then(r => r.text())
+    .then(r => r.json())
     .then(data => {
 
-      alert(data);
+      alert(JSON.stringify(data));
+
+      document.getElementById("question")
+        .innerText = data.questions[0];
 
     })
     .catch(err => {
@@ -24,4 +46,28 @@ window.onload = function(){
 
 };
 
+function startRecognition(){
+
+  const recognition =
+    new webkitSpeechRecognition();
+
+  recognition.lang = "en-US";
+
+  recognition.start();
+
+  recognition.onresult = function(event){
+
+    const spoken =
+      event.results[0][0].transcript;
+
+    document.getElementById("result")
+      .innerText = spoken;
+
+  };
+
+}
+
 </script>
+
+</body>
+</html>
