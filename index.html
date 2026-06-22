@@ -19,20 +19,14 @@
 
 <script>
 
-alert("SCRIPT START");
-
 const GAS_URL =
 "https://script.google.com/macros/s/AKfycbyiWrJyLuA9e9sBSsDtY5j1UXWjFc74rjsYQpM_hy89idvJXRqg6zQ4V2FGQKO025Rx/exec";
 
 window.onload = function(){
 
-  alert("TEXT MODE");
-
   fetch(GAS_URL)
     .then(r => r.json())
     .then(data => {
-
-      alert(JSON.stringify(data));
 
       alert("QUESTION SET START");
 
