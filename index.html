@@ -137,7 +137,7 @@ missingWords
 
 fetch(GAS_URL, {
 
-```
+
 method: "POST",
 
 body: JSON.stringify({
@@ -172,7 +172,6 @@ body: JSON.stringify({
     missingWords.join(", ")
 
 })
-```
 
 });
 
@@ -194,7 +193,6 @@ const dp = [];
 
 for(let i=0;i<=a.length;i++){
 
-```
 dp[i] = [];
 
 for(let j=0;j<=b.length;j++){
@@ -202,13 +200,11 @@ for(let j=0;j<=b.length;j++){
   dp[i][j] = 0;
 
 }
-```
 
 }
 
 for(let i=1;i<=a.length;i++){
 
-```
 for(let j=1;j<=b.length;j++){
 
   if(a[i-1] === b[j-1]){
@@ -226,7 +222,6 @@ for(let j=1;j<=b.length;j++){
 
   }
 }
-```
 
 }
 
@@ -245,7 +240,6 @@ let j = 0;
 
 for(let i=0;i<correctWords.length;i++){
 
-```
 if(
   j < spokenWords.length &&
   correctWords[i] === spokenWords[j]
@@ -260,7 +254,6 @@ if(
   );
 
 }
-```
 
 }
 
