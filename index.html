@@ -42,11 +42,15 @@ const GAS_URL =
 
 window.onload = function(){
 
+  alert("LOAD START");
+
   fetch(GAS_URL)
     .then(r => r.json())
     .then(data => {
 
-          document.getElementById("question")
+      alert("JSON OK");
+
+      document.getElementById("question")
         .innerText = data.questions[0];
 
     })
