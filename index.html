@@ -29,6 +29,12 @@
 <p><b>認識結果</b></p>
 <p id="result"></p>
 
+<p><b>得点</b></p>
+<p id="score"></p>
+
+<p><b>不足語</b></p>
+<p id="missing"></p>  
+
 function saveResult(
   recognitionText,
   score,
@@ -116,9 +122,195 @@ function startRecognition(){
     document.getElementById("result")
       .innerText = spoken;
 
+    gradeReading(spoken);
+
   };
 
 }
+
+function gradeReading(spoken){
+
+const correct =
+document.getElementById("question")
+.innerText;
+
+const correctWords =
+normalize(correct);
+
+const spokenWords =
+normalize(spoken);
+
+const lcsLength =
+getLCSLength(
+correctWords,
+spokenWords
+);
+
+const score = Math.round(
+lcsLength /
+correctWords.length * 100
+);
+
+const missingWords =
+findMissingWords(
+correctWords,
+spokenWords
+);
+
+document.getElementById("score")
+.innerText = score + " 点";
+
+document.getElementById("missing")
+.innerText =
+missingWords.join(", ");
+
+saveResult(
+spoken,
+score,
+missingWords
+);
+
+}
+
+function saveResult(
+recognitionText,
+score,
+missingWords
+){
+
+fetch(GAS_URL, {
+
+```
+method: "POST",
+
+body: JSON.stringify({
+
+  studentClass:
+    document.getElementById(
+      "studentClass"
+    ).value,
+
+  studentNumber:
+    document.getElementById(
+      "studentNumber"
+    ).value,
+
+  studentName:
+    document.getElementById(
+      "studentName"
+    ).value,
+
+  question:
+    document.getElementById(
+      "question"
+    ).innerText,
+
+  recognition:
+    recognitionText,
+
+  score:
+    score,
+
+  missing:
+    missingWords.join(", ")
+
+})
+```
+
+});
+
+}
+
+function normalize(text){
+
+return text
+.toLowerCase()
+.replace(/[.,!?]/g,"")
+.trim()
+.split(/\s+/);
+
+}
+
+function getLCSLength(a,b){
+
+const dp = [];
+
+for(let i=0;i<=a.length;i++){
+
+```
+dp[i] = [];
+
+for(let j=0;j<=b.length;j++){
+
+  dp[i][j] = 0;
+
+}
+```
+
+}
+
+for(let i=1;i<=a.length;i++){
+
+```
+for(let j=1;j<=b.length;j++){
+
+  if(a[i-1] === b[j-1]){
+
+    dp[i][j] =
+      dp[i-1][j-1] + 1;
+
+  }else{
+
+    dp[i][j] =
+      Math.max(
+        dp[i-1][j],
+        dp[i][j-1]
+      );
+
+  }
+}
+```
+
+}
+
+return dp[a.length][b.length];
+
+}
+
+function findMissingWords(
+correctWords,
+spokenWords
+){
+
+const missing = [];
+
+let j = 0;
+
+for(let i=0;i<correctWords.length;i++){
+
+```
+if(
+  j < spokenWords.length &&
+  correctWords[i] === spokenWords[j]
+){
+
+  j++;
+
+}else{
+
+  missing.push(
+    correctWords[i]
+  );
+
+}
+```
+
+}
+
+return missing;
+
+}
+  
 
 </script>
 
