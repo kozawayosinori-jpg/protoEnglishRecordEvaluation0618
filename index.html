@@ -28,21 +28,18 @@
 
 window.onload = function(){
 
-  fetch(GAS_URL)
-    .then(r => r.json())
-    .then(data => {
+ fetch(GAS_URL)
+  .then(r => r.text())
+  .then(data => {
 
-      document.getElementById("question")
-        .innerText = data.questions[0];
+    alert(data);
 
-    })
-    .catch(err => {
+  })
+  .catch(err => {
 
-      alert("取得エラー: " + err);
+    alert("取得エラー: " + err);
 
-    });
-
-};
+  });
 
 function startRecognition(){
 
