@@ -135,60 +135,29 @@ function saveResult(
   missingWords
 ){
 
-  alert("saveResult開始");
+  alert("SAVE START");
 
-  fetch(GAS_URL, {
+  alert("POST先=" + GAS_URL);
 
-    method: "POST",
-
-    body: JSON.stringify({
-
-      studentClass:
-        document.getElementById(
-          "studentClass"
-        ).value,
-
-      studentNumber:
-        document.getElementById(
-          "studentNumber"
-        ).value,
-
-      studentName:
-        document.getElementById(
-          "studentName"
-        ).value,
-
-      question:
-        document.getElementById(
-          "question"
-        ).innerText,
-
-      recognition:
-        recognitionText,
-
-      score:
-        score,
-
-      missing:
-        missingWords.join(", ")
-
+  fetch(GAS_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      test:"123"
     })
+  })
+  .then(r=>r.text())
+  .then(data=>{
+
+    alert("返答=" + data);
 
   })
-  .then(r => r.text())
-  .then(data => {
+  .catch(err=>{
 
-    alert("POST成功: " + data);
-
-  })
-  .catch(err => {
-
-    alert("POST失敗: " + err);
+    alert("失敗=" + err);
 
   });
 
 }
-
 function normalize(text){
 
 return text
