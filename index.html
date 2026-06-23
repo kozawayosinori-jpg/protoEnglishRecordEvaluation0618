@@ -130,50 +130,62 @@ missingWords
 }
 
 function saveResult(
-recognitionText,
-score,
-missingWords
+  recognitionText,
+  score,
+  missingWords
 ){
-alert("saveResult開始");
-fetch(GAS_URL, {
 
+  alert("saveResult開始");
 
-method: "POST",
+  fetch(GAS_URL, {
 
-body: JSON.stringify({
+    method: "POST",
 
-  studentClass:
-    document.getElementById(
-      "studentClass"
-    ).value,
+    body: JSON.stringify({
 
-  studentNumber:
-    document.getElementById(
-      "studentNumber"
-    ).value,
+      studentClass:
+        document.getElementById(
+          "studentClass"
+        ).value,
 
-  studentName:
-    document.getElementById(
-      "studentName"
-    ).value,
+      studentNumber:
+        document.getElementById(
+          "studentNumber"
+        ).value,
 
-  question:
-    document.getElementById(
-      "question"
-    ).innerText,
+      studentName:
+        document.getElementById(
+          "studentName"
+        ).value,
 
-  recognition:
-    recognitionText,
+      question:
+        document.getElementById(
+          "question"
+        ).innerText,
 
-  score:
-    score,
+      recognition:
+        recognitionText,
 
-  missing:
-    missingWords.join(", ")
+      score:
+        score,
 
-})
+      missing:
+        missingWords.join(", ")
 
-});
+    })
+
+  })
+  .then(r => r.text())
+  .then(data => {
+
+    alert("POST成功: " + data);
+
+  })
+  .catch(err => {
+
+    alert("POST失敗: " + err);
+
+  });
 
 }
 
