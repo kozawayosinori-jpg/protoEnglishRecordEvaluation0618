@@ -140,10 +140,42 @@ function saveResult(
   alert("POST先=" + GAS_URL);
 
   fetch(GAS_URL,{
+
     method:"POST",
+
     body:JSON.stringify({
-      test:"123"
+
+      studentClass:
+        document.getElementById(
+          "studentClass"
+        ).value,
+
+      studentNumber:
+        document.getElementById(
+          "studentNumber"
+        ).value,
+
+      studentName:
+        document.getElementById(
+          "studentName"
+        ).value,
+
+      question:
+        document.getElementById(
+          "question"
+        ).innerText,
+
+      recognition:
+        recognitionText,
+
+      score:
+        score,
+
+      missing:
+        missingWords.join(", ")
+
     })
+
   })
   .then(r=>r.text())
   .then(data=>{
