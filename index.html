@@ -97,15 +97,18 @@ normalize(correct);
 const spokenWords =
 normalize(spoken);
 
-const lcsLength =
-getLCSLength(
+const lcsInfo =
+getLCSInfo(
 correctWords,
 spokenWords
 );
 
-const score = Math.round(
-lcsLength /
-correctWords.length * 100
+console.log(lcsInfo); 
+
+const score =
+Math.round(
+lcsInfo.lcsLength /
+correctWords.length *100
 );
 
 const missingWords =
@@ -200,45 +203,95 @@ return text
 
 }
 
-function getLCSLength(a,b){
+function getLCSInfo(correctWords, spokenWords){
 
-const dp = [];
+  const m = correctWords.length;
+  const n = spokenWords.length;
 
-for(let i=0;i<=a.length;i++){
+  const dp = [];
 
-dp[i] = [];
+  for(let i=0;i<=m;i++){
 
-for(let j=0;j<=b.length;j++){
+    dp[i]=[];
 
-  dp[i][j] = 0;
+    for(let j=0;j<=n;j++){
 
-}
+      dp[i][j]=0;
 
-}
-
-for(let i=1;i<=a.length;i++){
-
-for(let j=1;j<=b.length;j++){
-
-  if(a[i-1] === b[j-1]){
-
-    dp[i][j] =
-      dp[i-1][j-1] + 1;
-
-  }else{
-
-    dp[i][j] =
-      Math.max(
-        dp[i-1][j],
-        dp[i][j-1]
-      );
+    }
 
   }
-}
 
-}
+  for(let i=1;i<=m;i++){
 
-return dp[a.length][b.length];
+    for(let j=1;j<=n;j++){
+
+      if(correctWords[i-1]===spokenWords[j-1]){
+
+        dp[i][j]=dp[i-1][j-1]+1;
+
+      }else{
+
+        dp[i][j]=Math.max(
+          dp[i-1][j],
+          dp[i][j-1]
+        );
+
+      }
+
+    }
+
+  }
+
+  //----------------------------------
+  // LCS復元
+  //----------------------------------
+
+  const matched=[];
+
+  let i=m;
+  let j=n;
+
+  while(i>0 && j>0){
+
+    if(correctWords[i-1]===spokenWords[j-1]){
+
+      matched.unshift({
+
+        correct:i-1,
+
+        spoken:j-1,
+
+        word:correctWords[i-1]
+
+      });
+
+      i--;
+      j--;
+
+    }
+
+    else if(dp[i-1][j]>=dp[i][j-1]){
+
+      i--;
+
+    }
+
+    else{
+
+      j--;
+
+    }
+
+  }
+
+  return{
+
+    lcsLength:dp[m][n],
+
+    matched:matched
+
+  };
 
 }
 
