@@ -368,18 +368,23 @@ function getLevenshteinInfo(correctWords, spokenWords){
     }
 
   }
-  //---------------------------------
-  // 編集履歴復元
-  //---------------------------------
+ //---------------------------------
+// 編集履歴復元
+//---------------------------------
 
-  const edits = [];
+const edits = [];
 
-  let i = m;
-  let j = n;
+let i = m;
+let j = n;
 
-  while(i > 0 && j > 0){
+while(i > 0 || j > 0){
 
-  if(correctWords[i-1] === spokenWords[j-1]){
+  // MATCH
+  if(
+    i > 0 &&
+    j > 0 &&
+    correctWords[i-1] === spokenWords[j-1]
+  ){
 
     edits.unshift({
 
@@ -389,23 +394,87 @@ function getLevenshteinInfo(correctWords, spokenWords){
 
     });
 
+    i--;
+    j--;
+
   }
 
-  i--;
-  j--;
+  // REPLACE
+  else if(
+    i > 0 &&
+    j > 0 &&
+    dp[i][j] === dp[i-1][j-1] + 1
+  ){
+
+    edits.unshift({
+
+      type:"REPLACE",
+
+      from:correctWords[i-1],
+
+      to:spokenWords[j-1]
+
+    });
+
+    i--;
+    j--;
+
+  }
+
+  // DELETE
+  else if(
+    i > 0 &&
+    dp[i][j] === dp[i-1][j] + 1
+  ){
+
+    edits.unshift({
+
+      type:"DELETE",
+
+      word:correctWords[i-1]
+
+    });
+
+    i--;
+
+  }
+
+  // INSERT
+  else if(
+    j > 0 &&
+    dp[i][j] === dp[i][j-1] + 1
+  ){
+
+    edits.unshift({
+
+      type:"INSERT",
+
+      word:spokenWords[j-1]
+
+    });
+
+    j--;
+
+  }
+
+  // 保険（無限ループ防止）
+  else{
+
+    if(i>0) i--;
+
+    if(j>0) j--;
+
+  }
 
 }
 
+return{
 
-  return{
+  distance:dp[m][n],
 
-    distance:dp[m][n],
+  edits:edits
 
-    edits:edits
-
-  };
-
-}
+};
   
 function findMissingWords(correctWords, spokenWords){
 
