@@ -368,12 +368,34 @@ function getLevenshteinInfo(correctWords, spokenWords){
     }
 
   }
+  //---------------------------------
+  // 編集履歴復元
+  //---------------------------------
+
+  const edits = [];
+
+  let i = m;
+  let j = n;
+
+  while(i>0 || j>0){
+
+      ...
+  }
 
   return{
 
     distance:dp[m][n],
 
-    dp:dp
+    edits:edits
+
+  };
+
+}
+  return{
+
+    distance:dp[m][n],
+
+    edits:edits
 
   };
 
