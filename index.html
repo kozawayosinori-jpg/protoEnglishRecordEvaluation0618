@@ -377,6 +377,25 @@ function getLevenshteinInfo(correctWords, spokenWords){
   let i = m;
   let j = n;
 
+  while(i > 0 && j > 0){
+
+  if(correctWords[i-1] === spokenWords[j-1]){
+
+    edits.unshift({
+
+      type:"MATCH",
+
+      word:correctWords[i-1]
+
+    });
+
+  }
+
+  i--;
+  j--;
+
+}
+
 
   return{
 
