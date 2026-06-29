@@ -377,10 +377,6 @@ function getLevenshteinInfo(correctWords, spokenWords){
   let i = m;
   let j = n;
 
-  while(i>0 || j>0){
-
-      ...
-  }
 
   return{
 
@@ -391,15 +387,7 @@ function getLevenshteinInfo(correctWords, spokenWords){
   };
 
 }
-  return{
-
-    distance:dp[m][n],
-
-    edits:edits
-
-  };
-
-}
+  
 function findMissingWords(correctWords, spokenWords){
 
   const m = correctWords.length;
