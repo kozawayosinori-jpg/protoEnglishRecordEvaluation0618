@@ -40,6 +40,9 @@
 const GAS_URL =
 "https://script.google.com/macros/s/AKfycbww8h71AfxruoQI-yPQT_8pn1nWCD2OtFz0rHpqP27RMm-0eJRx4cYv3qYFHvYpycoX/exec";
 
+  let ORDER_TOLERANCE = 3;
+  
+
 window.onload = function(){
 
   alert("LOAD START");
@@ -49,6 +52,10 @@ window.onload = function(){
     .then(data => {
 
       alert("JSON OK");
+
+      ORDER_TOLERANCE = data.orderTolerance;
+
+  alert("ORDER_TOLERANCE = " + ORDER_TOLERANCE);
 
       document.getElementById("question")
         .innerText = data.questions[0];
