@@ -115,7 +115,10 @@ getLevenshteinInfo(
   correctWords,
   spokenWords
 );
-
+const fixedEdits =
+fixWordOrder(
+    levenshteinInfo.edits
+);
 alert(
 JSON.stringify(
 levenshteinInfo
@@ -482,6 +485,117 @@ return{
   edits:edits
 
 };
+} 
+function fixWordOrder(edits){
+
+  const result = [];
+
+  const used = new Array(edits.length).fill(false);
+
+  for(let i=0;i<edits.length;i++){
+
+    if(used[i]) continue;
+
+    const edit = edits[i];
+
+    //------------------------------------
+    // DELETEを起点に探す
+    //------------------------------------
+
+    if(edit.type==="DELETE"){
+
+      let editDistance = 0;
+      let found = -1;
+
+      for(let j=i+1;j<edits.length;j++){
+
+        if(used[j]) continue;
+
+        //--------------------------------
+        // MATCHは距離に数えない
+        //--------------------------------
+
+        if(edits[j].type==="MATCH"){
+
+          continue;
+
+        }
+
+        //--------------------------------
+        // 編集だけ数える
+        //--------------------------------
+
+        editDistance++;
+
+        //--------------------------------
+        // 許容範囲を超えたら終了
+        //--------------------------------
+
+        if(editDistance > ORDER_TOLERANCE){
+
+          break;
+
+        }
+
+        //--------------------------------
+        // 同じ単語のINSERT発見
+        //--------------------------------
+
+        if(
+
+          edits[j].type==="INSERT" &&
+          edits[j].word===edit.word
+
+        ){
+
+          found = j;
+          break;
+
+        }
+
+      }
+
+      //--------------------------------
+      // ORDERへ変換
+      //--------------------------------
+
+      if(found!=-1){
+
+        result.push({
+
+          type:"ORDER",
+
+          word:edit.word,
+
+          correctIndex:edit.correctIndex,
+
+          spokenIndex:edits[found].spokenIndex
+
+        });
+
+        used[i]=true;
+        used[found]=true;
+
+        continue;
+
+      }
+
+    }
+
+    //------------------------------------
+    // 通常コピー
+    //------------------------------------
+
+    if(!used[i]){
+
+      result.push(edit);
+
+    }
+
+  }
+
+  return result;
+
 }  
 function findMissingWords(correctWords, spokenWords){
 
