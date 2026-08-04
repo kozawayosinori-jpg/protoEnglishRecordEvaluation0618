@@ -81,7 +81,7 @@ function startRecognition(){
       };
 
       mediaRecorder.start();
-       attachOnStop();   // ★ これを追加！
+      attachOnStop();   // ★ これを追加！
     })
     .catch(err => {
       alert("録音開始エラー: " + err);
@@ -647,4 +647,5 @@ function findMissingWords(correctWords, spokenWords){
 
 </body>
 </html>
+
 
