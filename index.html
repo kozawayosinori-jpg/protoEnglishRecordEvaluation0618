@@ -14,7 +14,7 @@
 
 <hr>
 
-<h1>さあ音読！君のスコアは？ 2026-08-4-3</h1>
+<h1>さあ音読！君のスコアは？ 2026-07-14-3</h1>
 
 <h3 id="question">
 読み込み中...
@@ -36,22 +36,20 @@
 <p id="missing"></p>  
 
 <script>
-
 const GAS_URL =
 "https://script.google.com/macros/s/AKfycbzp9jJD4jdup22gQJzk6J9Rsn_kcnrapAM7DZvf59f5abjs1V3e6hIVnT5nMFMwTRWj/exec";
 
-  let ORDER_TOLERANCE = 3;
-  
+let ORDER_TOLERANCE = 3;
+
+// ★ 録音用の変数
+let mediaRecorder;
+let audioChunks = [];
 
 window.onload = function(){
-
-  alert("LOAD START");
 
   fetch(GAS_URL)
     .then(r => r.json())
     .then(data => {
-
-      alert("JSON OK");
 
       ORDER_TOLERANCE = data.orderTolerance;
 
@@ -60,21 +58,34 @@ window.onload = function(){
 
     })
     .catch(err => {
-
       alert("取得エラー: " + err);
-
     });
 
 };
 
 function startRecognition(){
 
-  const recognition =
-    new webkitSpeechRecognition();
-
+  // 音声認識開始
+  const recognition = new webkitSpeechRecognition();
   recognition.lang = "en-US";
-
   recognition.start();
+
+  // 録音開始
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = e => {
+        audioChunks.push(e.data);
+      };
+
+      mediaRecorder.start();
+       attachOnStop();   // ★ これを追加！
+    })
+    .catch(err => {
+      alert("録音開始エラー: " + err);
+    });
 
   recognition.onresult = function(event){
 
@@ -86,12 +97,61 @@ function startRecognition(){
 
     gradeReading(spoken);
 
+    // 認識が終わったら録音停止
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+    }
   };
 
 }
 
+// ★ 録音停止後：音声を base64 にして saveResult に渡す
+// ここは startRecognition の外に置く
+function setupRecorderOnStop() {
+  if (!mediaRecorder) return;
+
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(audioChunks, { type: "audio/webm" });
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      const audioBase64 = reader.result.split(",")[1];
+
+      // DOM から最新の結果を取得して送信
+      const recognitionText =
+        document.getElementById("result").innerText;
+
+      const scoreText =
+        document.getElementById("score").innerText; // "81 点" など
+      const score =
+        parseInt(scoreText, 10) || 0;
+
+      const missingText =
+        document.getElementById("missing").innerText;
+      const missingWords =
+        missingText ? missingText.split(", ").filter(w => w) : [];
+
+      saveResult(
+        recognitionText,
+        score,
+        missingWords,
+        audioBase64
+      );
+    };
+
+    reader.readAsDataURL(blob);
+  };
+}
+
+// MediaRecorder が作られたタイミングで onstop を設定するためのヘルパー
+// startRecognition 内の getUserMedia 成功後に呼ぶ
+function attachOnStop() {
+  if (!mediaRecorder) return;
+  setupRecorderOnStop();
+}
+
 function gradeReading(spoken){
-alert("GRADE START");
+
 const correct =
 document.getElementById("question")
 .innerText;
@@ -117,11 +177,7 @@ const fixedEdits =
 fixWordOrder(
     levenshteinInfo.edits
 );
-alert(
-JSON.stringify(
-    fixedEdits
-));
- 
+
 const score =
 Math.round(
 lcsInfo.lcsLength /
@@ -141,23 +197,17 @@ document.getElementById("missing")
 .innerText =
 missingWords.join(", ");
 
-saveResult(
-spoken,
-score,
-missingWords
-);
+// ★ ここでは saveResult を呼ばない
+// 録音停止後（mediaRecorder.onstop）で audioBase64 と一緒に送信する
 
 }
 
 function saveResult(
   recognitionText,
   score,
-  missingWords
+  missingWords,
+  audioBase64
 ){
-
-  alert("SAVE START");
-
-  alert("POST先=" + GAS_URL);
 
   fetch(GAS_URL,{
 
@@ -192,24 +242,23 @@ function saveResult(
         score,
 
       missing:
-        missingWords.join(", ")
+        missingWords.join(", "),
+
+      audioBase64: audioBase64
 
     })
 
   })
   .then(r=>r.text())
   .then(data=>{
-
     alert("返答=" + data);
-
   })
   .catch(err=>{
-
     alert("失敗=" + err);
-
   });
 
 }
+
 function normalize(text){
 
 return text
@@ -259,10 +308,6 @@ function getLCSInfo(correctWords, spokenWords){
     }
 
   }
-
-  //----------------------------------
-  // LCS復元
-  //----------------------------------
 
   const matched=[];
 
@@ -318,10 +363,6 @@ function getLevenshteinInfo(correctWords, spokenWords){
 
   const dp = [];
 
-  //---------------------------------
-  // DP表作成
-  //---------------------------------
-
   for(let i=0;i<=m;i++){
 
     dp[i]=[];
@@ -350,10 +391,6 @@ function getLevenshteinInfo(correctWords, spokenWords){
 
   }
 
-  //---------------------------------
-  // DP計算
-  //---------------------------------
-
   for(let i=1;i<=m;i++){
 
     for(let j=1;j<=n;j++){
@@ -365,20 +402,15 @@ function getLevenshteinInfo(correctWords, spokenWords){
 
       dp[i][j]=Math.min(
 
-        dp[i-1][j]+1,      // DELETE
-
-        dp[i][j-1]+1,      // INSERT
-
-        dp[i-1][j-1]+cost  // MATCH / REPLACE
+        dp[i-1][j]+1,
+        dp[i][j-1]+1,
+        dp[i-1][j-1]+cost
 
       );
 
     }
 
   }
- //---------------------------------
-// 編集履歴復元
-//---------------------------------
 
 const edits = [];
 
@@ -387,7 +419,6 @@ let j = n;
 
 while(i > 0 || j > 0){
 
-  // MATCH
   if(
     i > 0 &&
     j > 0 &&
@@ -395,11 +426,8 @@ while(i > 0 || j > 0){
   ){
 
     edits.unshift({
-
       type:"MATCH",
-
       word:correctWords[i-1]
-
     });
 
     i--;
@@ -407,7 +435,6 @@ while(i > 0 || j > 0){
 
   }
 
-  // REPLACE
   else if(
     i > 0 &&
     j > 0 &&
@@ -415,13 +442,9 @@ while(i > 0 || j > 0){
   ){
 
     edits.unshift({
-
       type:"REPLACE",
-
       from:correctWords[i-1],
-
       to:spokenWords[j-1]
-
     });
 
     i--;
@@ -429,47 +452,37 @@ while(i > 0 || j > 0){
 
   }
 
-  // DELETE
   else if(
     i > 0 &&
     dp[i][j] === dp[i-1][j] + 1
   ){
 
     edits.unshift({
-
       type:"DELETE",
-
       word:correctWords[i-1]
-
     });
 
     i--;
 
   }
 
-  // INSERT
   else if(
     j > 0 &&
     dp[i][j] === dp[i][j-1] + 1
   ){
 
     edits.unshift({
-
       type:"INSERT",
-
       word:spokenWords[j-1]
-
     });
 
     j--;
 
   }
 
-  // 保険（無限ループ防止）
   else{
 
     if(i>0) i--;
-
     if(j>0) j--;
 
   }
@@ -477,13 +490,11 @@ while(i > 0 || j > 0){
 }
 
 return{
-
   distance:dp[m][n],
-
   edits:edits
-
 };
 } 
+
 function fixWordOrder(edits){
 
   const result = [];
@@ -496,10 +507,6 @@ function fixWordOrder(edits){
 
     const edit = edits[i];
 
-    //------------------------------------
-    // DELETEを起点に探す
-    //------------------------------------
-
     if(edit.type==="DELETE"){
 
       let editDistance = 0;
@@ -509,66 +516,33 @@ function fixWordOrder(edits){
 
         if(used[j]) continue;
 
-        //--------------------------------
-        // MATCHは距離に数えない
-        //--------------------------------
-
         if(edits[j].type==="MATCH"){
-
           continue;
-
         }
-
-        //--------------------------------
-        // 編集だけ数える
-        //--------------------------------
 
         editDistance++;
 
-        //--------------------------------
-        // 許容範囲を超えたら終了
-        //--------------------------------
-
         if(editDistance > ORDER_TOLERANCE){
-
           break;
-
         }
 
-        //--------------------------------
-        // 同じ単語のINSERT発見
-        //--------------------------------
-
         if(
-
           edits[j].type==="INSERT" &&
           edits[j].word===edit.word
-
         ){
-
           found = j;
           break;
-
         }
 
       }
 
-      //--------------------------------
-      // ORDERへ変換
-      //--------------------------------
-
       if(found!=-1){
 
         result.push({
-
           type:"ORDER",
-
           word:edit.word,
-
           correctIndex:edit.correctIndex,
-
           spokenIndex:edits[found].spokenIndex
-
         });
 
         used[i]=true;
@@ -580,14 +554,8 @@ function fixWordOrder(edits){
 
     }
 
-    //------------------------------------
-    // 通常コピー
-    //------------------------------------
-
     if(!used[i]){
-
       result.push(edit);
-
     }
 
   }
@@ -595,10 +563,11 @@ function fixWordOrder(edits){
   return result;
 
 }  
+
 function findMissingWords(correctWords, spokenWords){
 
   const m = correctWords.length;
-  const n = spokenWords.length;
+  n = spokenWords.length;
 
   const dp = [];
 
@@ -671,7 +640,11 @@ function findMissingWords(correctWords, spokenWords){
 
 }
 
+// ★ startRecognition の中で MediaRecorder が作られたあとに onstop を設定するため
+// navigator.mediaDevices.getUserMedia の then の最後で呼ぶ
+// （先生が統合するときに、getUserMedia の then の中で attachOnStop() を呼んでください）
 </script>
 
 </body>
 </html>
+
