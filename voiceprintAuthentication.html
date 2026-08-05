@@ -2,10 +2,10 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Resemblyzer WASM 声紋認証デモ</title>
+  <title>Vosk WASM 声紋認証デモ</title>
 </head>
 <body>
-  <h2>Resemblyzer WASM 声紋認証デモ（登録音声 vs テスト音声）</h2>
+  <h2>Vosk WASM 声紋認証デモ（登録音声 vs テスト音声）</h2>
 
   <div>
     <h3>① 登録用の声を録音</h3>
@@ -25,9 +25,7 @@
     <p id="result">まだ比較していません</p>
   </div>
 
-  <!-- Resemblyzer WASM のラッパーJSを読み込む前提 -->
-  <!-- 例: 自作 or 公開されている resemblyzer-wasm.js をホストして読み込む -->
-  <script src="resemblyzer-wasm.js"></script>
+  <script src="vosk.js"></script>
 
   <script>
     let mediaRecorder = null;
@@ -37,17 +35,13 @@
     let embeddingRegistered = null;
     let embeddingTest = null;
 
-    let resemblyzerReady = false;
+    let modelSpk = null;
 
-    // Resemblyzer WASM の初期化（ラッパー側で提供されていると仮定）
-    async function initResemblyzer() {
-      if (resemblyzerReady) return;
-      if (!window.Resemblyzer) {
-        alert("Resemblyzer WASM が読み込まれていません。resemblyzer-wasm.js を確認してください。");
-        return;
-      }
-      await window.Resemblyzer.init(); // 例: WASMロード
-      resemblyzerReady = true;
+    async function initVosk() {
+      if (modelSpk) return;
+
+      await Vosk.init(); // WASMロード
+      modelSpk = new Vosk.SpkModel("model-spk"); // 話者特徴モデル
     }
 
     async function startRecording(buttonId, statusId, onFinish) {
@@ -55,7 +49,6 @@
       const status = document.getElementById(statusId);
 
       if (mediaRecorder && mediaRecorder.state === "recording") {
-        // 停止
         mediaRecorder.stop();
         button.textContent = buttonId.includes('register') ? "登録用録音開始/停止" : "テスト用録音開始/停止";
         status.textContent = "録音停止中...";
@@ -66,9 +59,7 @@
       audioChunks = [];
       mediaRecorder = new MediaRecorder(stream);
 
-      mediaRecorder.ondataavailable = e => {
-        audioChunks.push(e.data);
-      };
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
 
       mediaRecorder.onstop = async () => {
         const blob = new Blob(audioChunks, { type: "audio/webm" });
@@ -77,12 +68,13 @@
 
         status.textContent = "声紋抽出中...";
 
-        await initResemblyzer();
+        await initVosk();
 
-        // AudioBuffer → PCM Float32Array に変換（モノラル）
-        const channelData = audioBuffer.getChannelData(0);
-        // Resemblyzer WASM ラッパーが PCM を受け取る想定
-        const embedding = await window.Resemblyzer.embedPCM(channelData, audioBuffer.sampleRate);
+        const pcm = audioBuffer.getChannelData(0);
+        const spk = new Vosk.Spk(modelSpk);
+        spk.acceptWaveform(pcm);
+
+        const embedding = spk.getSpkVector(); // Float32Array
 
         status.textContent = "声紋抽出完了";
 
@@ -95,7 +87,6 @@
     }
 
     function cosineSimilarity(a, b) {
-      if (!a || !b || a.length !== b.length) return 0;
       let dot = 0, normA = 0, normB = 0;
       for (let i = 0; i < a.length; i++) {
         dot += a[i] * b[i];
@@ -105,7 +96,6 @@
       return dot / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
-    // 登録用録音ボタン
     document.getElementById("record-register").addEventListener("click", () => {
       startRecording("record-register", "status-register", (embedding) => {
         embeddingRegistered = embedding;
@@ -113,7 +103,6 @@
       });
     });
 
-    // テスト用録音ボタン
     document.getElementById("record-test").addEventListener("click", () => {
       startRecording("record-test", "status-test", (embedding) => {
         embeddingTest = embedding;
@@ -121,16 +110,16 @@
       });
     });
 
-    // 比較ボタン
     document.getElementById("compare").addEventListener("click", () => {
       const result = document.getElementById("result");
+
       if (!embeddingRegistered || !embeddingTest) {
         result.textContent = "登録音声とテスト音声の両方を録音してください。";
         return;
       }
 
       const sim = cosineSimilarity(embeddingRegistered, embeddingTest);
-      const threshold = 0.85; // 仮の閾値
+      const threshold = 0.85;
 
       result.textContent = `類似度: ${sim.toFixed(3)} / 閾値: ${threshold}`;
 
@@ -143,4 +132,6 @@
   </script>
 </body>
 </html>
+
+
 
