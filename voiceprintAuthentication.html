@@ -2,10 +2,10 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ブラウザ声紋認証デモ</title>
+  <title>Resemblyzer WASM 声紋認証デモ</title>
 </head>
 <body>
-  <h2>ブラウザ声紋認証デモ（登録音声 vs テスト音声）</h2>
+  <h2>Resemblyzer WASM 声紋認証デモ（登録音声 vs テスト音声）</h2>
 
   <div>
     <h3>① 登録用の声を録音</h3>
@@ -25,9 +25,9 @@
     <p id="result">まだ比較していません</p>
   </div>
 
-  <!-- TensorFlow.js と speech-commands モデル -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
+  <!-- Resemblyzer WASM のラッパーJSを読み込む前提 -->
+  <!-- 例: 自作 or 公開されている resemblyzer-wasm.js をホストして読み込む -->
+  <script src="resemblyzer-wasm.js"></script>
 
   <script>
     let mediaRecorder = null;
@@ -37,13 +37,17 @@
     let embeddingRegistered = null;
     let embeddingTest = null;
 
-    let recognizer = null;
+    let resemblyzerReady = false;
 
-    async function initRecognizer() {
-      if (!recognizer) {
-        recognizer = speechCommands.create('BROWSER_FFT');
-        await recognizer.ensureModelLoaded();
+    // Resemblyzer WASM の初期化（ラッパー側で提供されていると仮定）
+    async function initResemblyzer() {
+      if (resemblyzerReady) return;
+      if (!window.Resemblyzer) {
+        alert("Resemblyzer WASM が読み込まれていません。resemblyzer-wasm.js を確認してください。");
+        return;
       }
+      await window.Resemblyzer.init(); // 例: WASMロード
+      resemblyzerReady = true;
     }
 
     async function startRecording(buttonId, statusId, onFinish) {
@@ -73,8 +77,12 @@
 
         status.textContent = "声紋抽出中...";
 
-        await initRecognizer();
-        const embedding = await extractEmbedding(audioBuffer);
+        await initResemblyzer();
+
+        // AudioBuffer → PCM Float32Array に変換（モノラル）
+        const channelData = audioBuffer.getChannelData(0);
+        // Resemblyzer WASM ラッパーが PCM を受け取る想定
+        const embedding = await window.Resemblyzer.embedPCM(channelData, audioBuffer.sampleRate);
 
         status.textContent = "声紋抽出完了";
 
@@ -84,33 +92,6 @@
       mediaRecorder.start();
       button.textContent = "録音中...もう一度押すと停止";
       status.textContent = "録音中...";
-    }
-
-    async function extractEmbedding(audioBuffer) {
-      // speech-commands の入力形式に変換
-      const duration = audioBuffer.duration;
-      const sampleRate = audioBuffer.sampleRate;
-      const channelData = audioBuffer.getChannelData(0); // モノラル前提
-
-      // モデルが期待する長さに合わせて切り出し or ゼロ埋め（簡易版）
-      const targetSampleRate = 44100;
-      const targetLengthSec = 1.0; // 1秒分だけ使う簡易版
-      const targetLength = targetSampleRate * targetLengthSec;
-
-      // リサンプリング（超簡易版：間引き）
-      const resampled = new Float32Array(targetLength);
-      const step = Math.max(1, Math.floor((channelData.length) / targetLength));
-      for (let i = 0; i < targetLength; i++) {
-        const idx = i * step;
-        resampled[i] = channelData[Math.min(idx, channelData.length - 1)];
-      }
-
-      // recognizer の入力形式に変換
-      const input = recognizer.audioDataToInput(resampled);
-      const embeddingTensor = recognizer.predict(input);
-      const embedding = embeddingTensor.dataSync(); // Float32Array
-
-      return embedding;
     }
 
     function cosineSimilarity(a, b) {
@@ -162,3 +143,4 @@
   </script>
 </body>
 </html>
+
