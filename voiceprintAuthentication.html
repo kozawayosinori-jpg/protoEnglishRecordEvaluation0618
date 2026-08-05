@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ブラウザ声紋認証デモ</title>
+</head>
+<body>
+  <h2>ブラウザ声紋認証デモ（登録音声 vs テスト音声）</h2>
+
+  <div>
+    <h3>① 登録用の声を録音</h3>
+    <button id="record-register">登録用録音開始/停止</button>
+    <p id="status-register">未録音</p>
+  </div>
+
+  <div>
+    <h3>② テスト用の声を録音</h3>
+    <button id="record-test">テスト用録音開始/停止</button>
+    <p id="status-test">未録音</p>
+  </div>
+
+  <div>
+    <h3>③ 声紋比較</h3>
+    <button id="compare">本人判定</button>
+    <p id="result">まだ比較していません</p>
+  </div>
+
+  <!-- TensorFlow.js と speech-commands モデル -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
+
+  <script>
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    let embeddingRegistered = null;
+    let embeddingTest = null;
+
+    let recognizer = null;
+
+    async function initRecognizer() {
+      if (!recognizer) {
+        recognizer = speechCommands.create('BROWSER_FFT');
+        await recognizer.ensureModelLoaded();
+      }
+    }
+
+    async function startRecording(buttonId, statusId, onFinish) {
+      const button = document.getElementById(buttonId);
+      const status = document.getElementById(statusId);
+
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        // 停止
+        mediaRecorder.stop();
+        button.textContent = buttonId.includes('register') ? "登録用録音開始/停止" : "テスト用録音開始/停止";
+        status.textContent = "録音停止中...";
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = e => {
+        audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunks, { type: "audio/webm" });
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        status.textContent = "声紋抽出中...";
+
+        await initRecognizer();
+        const embedding = await extractEmbedding(audioBuffer);
+
+        status.textContent = "声紋抽出完了";
+
+        onFinish(embedding);
+      };
+
+      mediaRecorder.start();
+      button.textContent = "録音中...もう一度押すと停止";
+      status.textContent = "録音中...";
+    }
+
+    async function extractEmbedding(audioBuffer) {
+      // speech-commands の入力形式に変換
+      const duration = audioBuffer.duration;
+      const sampleRate = audioBuffer.sampleRate;
+      const channelData = audioBuffer.getChannelData(0); // モノラル前提
+
+      // モデルが期待する長さに合わせて切り出し or ゼロ埋め（簡易版）
+      const targetSampleRate = 44100;
+      const targetLengthSec = 1.0; // 1秒分だけ使う簡易版
+      const targetLength = targetSampleRate * targetLengthSec;
+
+      // リサンプリング（超簡易版：間引き）
+      const resampled = new Float32Array(targetLength);
+      const step = Math.max(1, Math.floor((channelData.length) / targetLength));
+      for (let i = 0; i < targetLength; i++) {
+        const idx = i * step;
+        resampled[i] = channelData[Math.min(idx, channelData.length - 1)];
+      }
+
+      // recognizer の入力形式に変換
+      const input = recognizer.audioDataToInput(resampled);
+      const embeddingTensor = recognizer.predict(input);
+      const embedding = embeddingTensor.dataSync(); // Float32Array
+
+      return embedding;
+    }
+
+    function cosineSimilarity(a, b) {
+      if (!a || !b || a.length !== b.length) return 0;
+      let dot = 0, normA = 0, normB = 0;
+      for (let i = 0; i < a.length; i++) {
+        dot += a[i] * b[i];
+        normA += a[i] * a[i];
+        normB += b[i] * b[i];
+      }
+      return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
+    // 登録用録音ボタン
+    document.getElementById("record-register").addEventListener("click", () => {
+      startRecording("record-register", "status-register", (embedding) => {
+        embeddingRegistered = embedding;
+        document.getElementById("status-register").textContent = "登録声紋を保存しました";
+      });
+    });
+
+    // テスト用録音ボタン
+    document.getElementById("record-test").addEventListener("click", () => {
+      startRecording("record-test", "status-test", (embedding) => {
+        embeddingTest = embedding;
+        document.getElementById("status-test").textContent = "テスト声紋を保存しました";
+      });
+    });
+
+    // 比較ボタン
+    document.getElementById("compare").addEventListener("click", () => {
+      const result = document.getElementById("result");
+      if (!embeddingRegistered || !embeddingTest) {
+        result.textContent = "登録音声とテスト音声の両方を録音してください。";
+        return;
+      }
+
+      const sim = cosineSimilarity(embeddingRegistered, embeddingTest);
+      const threshold = 0.85; // 仮の閾値
+
+      result.textContent = `類似度: ${sim.toFixed(3)} / 閾値: ${threshold}`;
+
+      if (sim >= threshold) {
+        result.textContent += " → 本人の可能性が高いと判定しました。";
+      } else {
+        result.textContent += " → 別人の可能性があると判定しました。";
+      }
+    });
+  </script>
+</body>
+</html>
