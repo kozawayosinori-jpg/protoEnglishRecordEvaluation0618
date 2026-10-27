@@ -20,9 +20,11 @@
 読み込み中...
 </h3>
 
-<button onclick="startRecognition()">
+
+<button id="recordButton" onclick="startRecognition()">
 録音開始
 </button>
+
 
 <hr>
 
@@ -63,7 +65,11 @@ window.onload = function(){
 
 };
 
+
 function startRecognition(){
+
+  // 録音ボタンの表示を変更
+  document.getElementById("recordButton").innerText = "録音中";
 
   // 音声認識開始
   const recognition = new webkitSpeechRecognition();
@@ -81,9 +87,11 @@ function startRecognition(){
       };
 
       mediaRecorder.start();
-      attachOnStop();   // ★ これを追加！
+      attachOnStop();
     })
     .catch(err => {
+      // 録音開始に失敗した場合、ボタンを元に戻す
+      document.getElementById("recordButton").innerText = "録音開始";
       alert("録音開始エラー: " + err);
     });
 
@@ -98,19 +106,25 @@ function startRecognition(){
     gradeReading(spoken);
 
     // 認識が終わったら録音停止
-    if (mediaRecorder) {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop();
     }
   };
 
 }
 
+
 // ★ 録音停止後：音声を base64 にして saveResult に渡す
 // ここは startRecognition の外に置く
+
 function setupRecorderOnStop() {
   if (!mediaRecorder) return;
 
   mediaRecorder.onstop = () => {
+
+    // 録音終了：ボタンの表示を元に戻す
+    document.getElementById("recordButton").innerText = "録音開始";
+
     const blob = new Blob(audioChunks, { type: "audio/webm" });
     const reader = new FileReader();
 
@@ -122,12 +136,14 @@ function setupRecorderOnStop() {
         document.getElementById("result").innerText;
 
       const scoreText =
-        document.getElementById("score").innerText; // "81 点" など
+        document.getElementById("score").innerText;
+
       const score =
         parseInt(scoreText, 10) || 0;
 
       const missingText =
         document.getElementById("missing").innerText;
+
       const missingWords =
         missingText ? missingText.split(", ").filter(w => w) : [];
 
@@ -142,6 +158,7 @@ function setupRecorderOnStop() {
     reader.readAsDataURL(blob);
   };
 }
+
 
 // MediaRecorder が作られたタイミングで onstop を設定するためのヘルパー
 // startRecognition 内の getUserMedia 成功後に呼ぶ
