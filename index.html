@@ -117,10 +117,17 @@ function startRecognition(){
 // ★ 録音停止後：音声を base64 にして saveResult に渡す
 // ここは startRecognition の外に置く
 
+
 function setupRecorderOnStop() {
   if (!mediaRecorder) return;
 
   mediaRecorder.onstop = () => {
+
+    // 録音終了時刻を取得（日本時間）
+    const recordingEndTime = new Date().toLocaleString(
+      "ja-JP",
+      { timeZone: "Asia/Tokyo" }
+    );
 
     // 録音終了：ボタンの表示を元に戻す
     document.getElementById("recordButton").innerText = "録音開始";
@@ -131,7 +138,6 @@ function setupRecorderOnStop() {
     reader.onloadend = () => {
       const audioBase64 = reader.result.split(",")[1];
 
-      // DOM から最新の結果を取得して送信
       const recognitionText =
         document.getElementById("result").innerText;
 
@@ -147,17 +153,20 @@ function setupRecorderOnStop() {
       const missingWords =
         missingText ? missingText.split(", ").filter(w => w) : [];
 
+      // 録音終了時刻も一緒に送信
       saveResult(
         recognitionText,
         score,
         missingWords,
-        audioBase64
+        audioBase64,
+        recordingEndTime
       );
     };
 
     reader.readAsDataURL(blob);
   };
 }
+
 
 
 // MediaRecorder が作られたタイミングで onstop を設定するためのヘルパー
@@ -223,7 +232,8 @@ function saveResult(
   recognitionText,
   score,
   missingWords,
-  audioBase64
+  audioBase64,
+  recordingEndTime
 ){
 
   fetch(GAS_URL,{
@@ -258,8 +268,11 @@ function saveResult(
       score:
         score,
 
-      missing:
+           missing:
         missingWords.join(", "),
+
+      // 録音終了時刻
+      recordingEndTime: recordingEndTime,
 
       audioBase64: audioBase64
 
