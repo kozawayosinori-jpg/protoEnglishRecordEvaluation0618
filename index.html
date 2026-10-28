@@ -46,6 +46,7 @@ let ORDER_TOLERANCE = 3;
 // ★ 録音用の変数
 let mediaRecorder;
 let audioChunks = [];
+let recordingStartTime = "";
 
 window.onload = function(){
 
@@ -87,7 +88,11 @@ function startRecognition(){
       };
 
       mediaRecorder.start();
-      attachOnStop();
+
+// 録音開始時刻を取得
+recordingStartTime = new Date().toISOString();
+
+attachOnStop();
     })
     .catch(err => {
       // 録音開始に失敗した場合、ボタンを元に戻す
@@ -123,11 +128,8 @@ function setupRecorderOnStop() {
 
   mediaRecorder.onstop = () => {
 
-    // 録音終了時刻を取得（日本時間）
-    const recordingEndTime = new Date().toLocaleString(
-      "ja-JP",
-      { timeZone: "Asia/Tokyo" }
-    );
+        // 録音終了時刻を取得
+const recordingEndTime = new Date().toISOString();
 
     // 録音終了：ボタンの表示を元に戻す
     document.getElementById("recordButton").innerText = "録音開始";
@@ -159,7 +161,8 @@ function setupRecorderOnStop() {
         score,
         missingWords,
         audioBase64,
-        recordingEndTime
+        recordingEndTime,
+        recordingStartTime
       );
     };
 
@@ -273,6 +276,8 @@ function saveResult(
 
       // 録音終了時刻
       recordingEndTime: recordingEndTime,
+      // 録音開始時刻
+recordingStartTime: recordingStartTime,
 
       audioBase64: audioBase64
 
