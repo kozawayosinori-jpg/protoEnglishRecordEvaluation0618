@@ -68,6 +68,20 @@ window.onload = function(){
 
 
 function startRecognition(){
+    // 受験者情報の入力チェック
+  const studentClass =
+    document.getElementById("studentClass").value.trim();
+
+  const studentNumber =
+    document.getElementById("studentNumber").value.trim();
+
+  const studentName =
+    document.getElementById("studentName").value.trim();
+
+  if (!studentClass || !studentNumber || !studentName) {
+    alert("クラス・出席番号・氏名をすべて入力してください。");
+    return;
+  }
 
   // 録音ボタンの表示を変更
   document.getElementById("recordButton").innerText = "録音中";
