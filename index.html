@@ -4,10 +4,10 @@
   <h2>受験者情報</h2>
 
 クラス<br>
-<input id="studentClass"><br><br>
+<input id="studentClass" oninput="checkHalfWidth(this)">
 
 出席番号<br>
-<input id="studentNumber"><br><br>
+<input id="studentNumber" oninput="checkHalfWidth(this)">
 
 氏名<br>
 <input id="studentName"><br><br>
@@ -65,6 +65,20 @@ window.onload = function(){
     });
 
 };
+// 半角英数字のみを許可
+function checkHalfWidth(input) {
+
+  const value = input.value;
+
+  // 半角英数字以外が含まれているか確認
+  if (/[^a-zA-Z0-9]/.test(value)) {
+
+    alert("半角英数字で入力してください。");
+
+    // 半角英数字以外を削除
+    input.value = value.replace(/[^a-zA-Z0-9]/g, "");
+  }
+}
 
 
 function startRecognition(){
