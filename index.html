@@ -48,6 +48,10 @@ let mediaRecorder;
 let audioChunks = [];
 let recordingStartTime = "";
 
+let recognition;
+let recognitionText = "";
+let stopRequested = false;
+
 window.onload = function(){
 
   fetch(GAS_URL)
@@ -82,7 +86,14 @@ function checkHalfWidth(input) {
 
 
 function startRecognition(){
-    // 受験者情報の入力チェック
+
+  // すでに録音中なら、録音終了処理へ
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    stopRecording();
+    return;
+  }
+
+  // 受験者情報の入力チェック
   const studentClass =
     document.getElementById("studentClass").value.trim();
 
@@ -97,18 +108,21 @@ function startRecognition(){
     return;
   }
 
-  // 録音ボタンの表示を変更
-  document.getElementById("recordButton").innerText = "録音中";
+  // 初期化
+  audioChunks = [];
+  recognitionText = "";
+  stopRequested = false;
 
-  // 音声認識開始
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.start();
+  document.getElementById("result").innerText = "";
+  document.getElementById("score").innerText = "";
+  document.getElementById("missing").innerText = "";
+
+  document.getElementById("recordButton").innerText = "録音準備中";
 
   // 録音開始
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(stream => {
-      audioChunks = [];
+
       mediaRecorder = new MediaRecorder(stream);
 
       mediaRecorder.ondataavailable = e => {
@@ -117,32 +131,109 @@ function startRecognition(){
 
       mediaRecorder.start();
 
-// 録音開始時刻を取得
-recordingStartTime = new Date().toISOString();
+      // 録音開始時刻
+      recordingStartTime = new Date().toISOString();
 
-attachOnStop();
+      // 録音停止後の処理を設定
+      attachOnStop();
+
+      // ボタン表示を変更
+      document.getElementById("recordButton").innerText = "録音終了";
+
+      // 音声認識開始
+      recognition = new webkitSpeechRecognition();
+
+      recognition.lang = "en-US";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = function(event) {
+
+        let interimText = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+
+          const transcript = event.results[i][0].transcript;
+
+          if (event.results[i].isFinal) {
+            recognitionText += transcript + " ";
+          } else {
+            interimText += transcript;
+          }
+        }
+
+        document.getElementById("result").innerText =
+          recognitionText + interimText;
+
+      };
+
+      // 音声認識が途中で終了した場合
+      recognition.onend = function() {
+
+        // 受験者が録音終了を押していた場合
+        if (stopRequested) {
+
+          if (mediaRecorder && mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
+          }
+
+          return;
+        }
+
+        // 録音中なら音声認識を再開
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+
+          try {
+            recognition.start();
+          } catch (err) {
+            console.log("音声認識再開エラー:", err);
+          }
+
+        }
+      };
+
+      recognition.start();
+
     })
     .catch(err => {
-      // 録音開始に失敗した場合、ボタンを元に戻す
+
       document.getElementById("recordButton").innerText = "録音開始";
+
       alert("録音開始エラー: " + err);
+
     });
 
-  recognition.onresult = function(event){
+}
 
-    const spoken =
-      event.results[0][0].transcript;
 
-    document.getElementById("result")
-      .innerText = spoken;
+// 手動で録音を終了する
+function stopRecording() {
 
-    gradeReading(spoken);
+  if (!mediaRecorder || mediaRecorder.state !== "recording") {
+    return;
+  }
 
-    // 認識が終わったら録音停止
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-      mediaRecorder.stop();
+  stopRequested = true;
+
+  document.getElementById("recordButton").innerText = "終了処理中";
+
+  // 音声認識を終了する
+  if (recognition) {
+
+    try {
+      recognition.stop();
+    } catch (err) {
+      // 音声認識がすでに終了している場合
+      if (mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+      }
     }
-  };
+
+  } else {
+
+    mediaRecorder.stop();
+
+  }
 
 }
 
@@ -158,6 +249,8 @@ function setupRecorderOnStop() {
 
         // 録音終了時刻を取得
 const recordingEndTime = new Date().toISOString();
+    // 録音終了時に、認識結果を採点する
+gradeReading(recognitionText.trim());
 
     // 録音終了：ボタンの表示を元に戻す
     document.getElementById("recordButton").innerText = "録音開始";
