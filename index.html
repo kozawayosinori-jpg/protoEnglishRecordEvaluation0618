@@ -251,6 +251,8 @@ function setupRecorderOnStop() {
 const recordingEndTime = new Date().toISOString();
     // 録音終了時に、認識結果を採点する
 gradeReading(recognitionText.trim());
+    // 録音終了時に、認識結果を採点する
+gradeReading(recognitionText.trim());
 
     // 録音終了：ボタンの表示を元に戻す
     document.getElementById("recordButton").innerText = "録音開始";
