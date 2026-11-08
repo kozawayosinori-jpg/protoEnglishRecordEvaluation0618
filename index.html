@@ -44,6 +44,8 @@ const GAS_URL =
 
 let ORDER_TOLERANCE = 3;
 
+let TIME_LIMIT = 60;  
+
 // ★ 録音用の変数
 let mediaRecorder;
 let audioChunks = [];
@@ -60,6 +62,8 @@ window.onload = function(){
     .then(data => {
 
       ORDER_TOLERANCE = data.orderTolerance;
+
+      TIME_LIMIT = data.timeLimit || 60;
 
       document.getElementById("question")
         .innerText = data.questions[0];
