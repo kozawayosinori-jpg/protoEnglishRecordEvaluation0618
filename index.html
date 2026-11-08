@@ -46,6 +46,55 @@ let ORDER_TOLERANCE = 3;
 
 let TIME_LIMIT = 60;  
 
+
+let timerInterval = null;
+let remainingTime = 0;
+
+// 残り時間を画面に表示
+function updateTimerDisplay() {
+
+  const minutes = Math.floor(remainingTime / 60);
+  const seconds = remainingTime % 60;
+
+  const display =
+    String(minutes).padStart(2, "0") + ":" +
+    String(seconds).padStart(2, "0");
+
+  document.getElementById("timer").innerText =
+    "残り時間：" + display;
+}
+
+
+// カウントダウン開始
+function startCountdown() {
+
+  clearInterval(timerInterval);
+
+  remainingTime = Number(TIME_LIMIT);
+
+  updateTimerDisplay();
+
+  timerInterval = setInterval(function() {
+
+    remainingTime--;
+
+    updateTimerDisplay();
+
+    // 残り時間が0になったら録音終了
+    if (remainingTime <= 0) {
+
+      clearInterval(timerInterval);
+      timerInterval = null;
+
+      stopRecording();
+
+    }
+
+  }, 1000);
+
+}
+  
+
 // ★ 録音用の変数
 let mediaRecorder;
 let audioChunks = [];
