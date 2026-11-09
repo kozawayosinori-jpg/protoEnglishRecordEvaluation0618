@@ -957,7 +957,48 @@ function findMissingWords(correctWords, spokenWords){
 
 // ★ startRecognition の中で MediaRecorder が作られたあとに onstop を設定するため
 // navigator.mediaDevices.getUserMedia の then の最後で呼ぶ
-// （先生が統合するときに、getUserMedia の then の中で attachOnStop() を呼んでください）
+// （統合するときに、getUserMedia の then の中で attachOnStop() を呼んでください）
+
+// ===== 報酬画面の表示 =====
+
+function showReward(score) {
+
+  const screen = document.getElementById("rewardScreen");
+  const title = document.getElementById("rewardTitle");
+  const message = document.getElementById("rewardMessage");
+
+  screen.style.display = "block";
+
+  if (score >= 90) {
+
+    screen.className = "reward-firework";
+    title.innerText = "PERFECT!!";
+    message.innerText = "素晴らしい！！";
+
+  } else if (score >= 60) {
+
+    screen.className = "reward-flower";
+    title.innerText = "GOOD JOB!";
+    message.innerText = "よく頑張りました！";
+
+  } else {
+
+    screen.className = "reward-wind";
+    title.innerText = "KEEP TRYING!";
+    message.innerText = "次はもっと頑張ろう！";
+
+  }
+
+}
+
+
+// ===== 報酬画面を閉じる =====
+
+function closeReward() {
+
+  document.getElementById("rewardScreen").style.display = "none";
+
+}  
 </script>
 
 </body>
