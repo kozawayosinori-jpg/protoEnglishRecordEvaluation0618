@@ -180,7 +180,58 @@
     transform: translate(450px, -40px) rotate(0deg);
     opacity: 0;
   }
-}  
+} 
+ /* ===== 木枯らしアニメーション ===== */
+
+.witheredLeaf {
+  position: absolute;
+  top: -60px;
+  font-size: 35px;
+  animation: coldWind 5s linear forwards;
+}
+
+@keyframes coldWind {
+
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  25% {
+    transform: translate(100px, 25vh) rotate(120deg);
+  }
+
+  50% {
+    transform: translate(-50px, 50vh) rotate(240deg);
+  }
+
+  75% {
+    transform: translate(150px, 75vh) rotate(360deg);
+  }
+
+  100% {
+    transform: translate(-100px, 110vh) rotate(540deg);
+    opacity: 0;
+  }
+
+}
+
+/* 木枯らしのタイトル */
+
+.reward-wind #rewardTitle {
+  color: #ffffff;
+  text-shadow:
+    2px 2px 5px #35465a,
+    0 0 20px #aab9c8;
+}
+
+.reward-wind #rewardMessage {
+  color: #ffffff;
+} 
 </style>
 </head>
 
@@ -1163,13 +1214,35 @@ function showReward(score) {
 
     screen.dataset.butterflyTimer = butterflyTimer;
 
-  } else {
+ } else {
 
     // ===== 木枯らし =====
 
     screen.className = "reward-wind";
     title.innerText = "KEEP TRYING!";
     message.innerText = "次はもっと頑張ろう！";
+
+    // 枯れ葉を次々に飛ばす
+    const leaves = ["🍂", "🍁", "🍂", "🍃"];
+
+    const timer = setInterval(() => {
+
+      const leaf = document.createElement("div");
+
+      leaf.className = "witheredLeaf";
+
+      leaf.innerText =
+        leaves[Math.floor(Math.random() * leaves.length)];
+
+      leaf.style.left = Math.random() * 90 + "%";
+
+      animation.appendChild(leaf);
+
+      setTimeout(() => leaf.remove(), 5500);
+
+    }, 300);
+
+    screen.dataset.rewardTimer = timer;
 
   }
 
