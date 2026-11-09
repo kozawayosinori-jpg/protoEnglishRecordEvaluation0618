@@ -1080,16 +1080,24 @@ function showReward(score) {
   const message = document.getElementById("rewardMessage");
   const animation = document.getElementById("rewardAnimation");
 
+  // 前のアニメーションを停止
+  clearInterval(Number(screen.dataset.fireworkTimer));
+  clearInterval(Number(screen.dataset.rewardTimer));
+
+  screen.dataset.fireworkTimer = "";
+  screen.dataset.rewardTimer = "";
+
   screen.style.display = "block";
   animation.innerHTML = "";
 
   if (score >= 90) {
 
+    // ===== 花火 =====
+
     screen.className = "reward-firework";
     title.innerText = "PERFECT!!";
     message.innerText = "素晴らしい！！";
 
-    // 花火を連続して打ち上げる
     const timer = setInterval(() => {
 
       const firework = document.createElement("div");
@@ -1100,9 +1108,7 @@ function showReward(score) {
 
       animation.appendChild(firework);
 
-      setTimeout(() => {
-        firework.remove();
-      }, 1600);
+      setTimeout(() => firework.remove(), 1600);
 
     }, 400);
 
@@ -1110,11 +1116,56 @@ function showReward(score) {
 
   } else if (score >= 60) {
 
+    // ===== お花とちょうちょ =====
+
     screen.className = "reward-flower";
     title.innerText = "GOOD JOB!";
     message.innerText = "よく頑張りました！";
 
+    // 花を次々に登場させる
+    const flowers = ["🌸", "🌷", "🌼", "🌺", "🌻"];
+
+    const timer = setInterval(() => {
+
+      const flower = document.createElement("div");
+
+      flower.className = "flower";
+
+      flower.innerText =
+        flowers[Math.floor(Math.random() * flowers.length)];
+
+      flower.style.left = Math.random() * 90 + "%";
+
+      animation.appendChild(flower);
+
+      setTimeout(() => flower.remove(), 6500);
+
+    }, 400);
+
+    screen.dataset.rewardTimer = timer;
+
+    // ちょうちょを飛ばす
+    const butterflyTimer = setInterval(() => {
+
+      const butterfly = document.createElement("div");
+
+      butterfly.className = "butterfly";
+      butterfly.innerText = "🦋";
+
+      butterfly.style.left = "5%";
+      butterfly.style.top = Math.random() * 60 + 15 + "%";
+
+      animation.appendChild(butterfly);
+
+      setTimeout(() => butterfly.remove(), 7500);
+
+    }, 1200);
+
+    screen.dataset.butterflyTimer = butterflyTimer;
+
   } else {
+
+    // ===== 木枯らし =====
 
     screen.className = "reward-wind";
     title.innerText = "KEEP TRYING!";
@@ -1132,10 +1183,16 @@ function closeReward() {
   const screen = document.getElementById("rewardScreen");
 
   clearInterval(Number(screen.dataset.fireworkTimer));
+  clearInterval(Number(screen.dataset.rewardTimer));
+  clearInterval(Number(screen.dataset.butterflyTimer));
 
   screen.dataset.fireworkTimer = "";
+  screen.dataset.rewardTimer = "";
+  screen.dataset.butterflyTimer = "";
 
   screen.style.display = "none";
+
+  document.getElementById("rewardAnimation").innerHTML = "";
 
 }
 </script>
