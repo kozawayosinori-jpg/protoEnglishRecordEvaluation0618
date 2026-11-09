@@ -185,6 +185,8 @@ function startRecognition(){
 
       mediaRecorder.start();
 
+      startCountdown();
+
       // 録音開始時刻
       recordingStartTime = new Date().toISOString();
 
@@ -266,6 +268,8 @@ function stopRecording() {
   if (!mediaRecorder || mediaRecorder.state !== "recording") {
     return;
   }
+  clearInterval(timerInterval);
+timerInterval = null;
 
   stopRequested = true;
 
