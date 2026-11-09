@@ -1122,6 +1122,17 @@ function findMissingWords(correctWords, spokenWords){
 // navigator.mediaDevices.getUserMedia の then の最後で呼ぶ
 // （統合するときに、getUserMedia の then の中で attachOnStop() を呼んでください）
 
+// ===== 花火・ファンファーレ音声 =====
+
+const fireworksSound =
+  new Audio("fireworks-and-fireworks-in-the-city.mp3");
+
+const fanfareSound =
+  new Audio("ファンファーレ5.mp3");
+
+fireworksSound.volume = 0.8;
+fanfareSound.volume = 0.8;
+  
 // ===== 報酬画面の表示 =====
 
 function showReward(score) {
@@ -1144,6 +1155,25 @@ function showReward(score) {
   if (score >= 90) {
 
     // ===== 花火 =====
+
+    // ===== 花火とファンファーレの再生 =====
+
+    fireworksSound.currentTime = 0;
+
+    fireworksSound.play().catch(error => {
+      console.log("花火の音声を再生できませんでした", error);
+    });
+
+    // 1.5秒後にファンファーレ
+    screen.dataset.fanfareTimer = setTimeout(() => {
+
+      fanfareSound.currentTime = 0;
+
+      fanfareSound.play().catch(error => {
+        console.log("ファンファーレを再生できませんでした", error);
+      });
+
+    }, 1500);
 
     screen.className = "reward-firework";
     title.innerText = "PERFECT!!";
@@ -1254,6 +1284,15 @@ function showReward(score) {
 function closeReward() {
 
   const screen = document.getElementById("rewardScreen");
+
+    // 効果音を停止
+  clearTimeout(Number(screen.dataset.fanfareTimer));
+
+  fireworksSound.pause();
+  fireworksSound.currentTime = 0;
+
+  fanfareSound.pause();
+  fanfareSound.currentTime = 0;
 
   clearInterval(Number(screen.dataset.fireworkTimer));
   clearInterval(Number(screen.dataset.rewardTimer));
