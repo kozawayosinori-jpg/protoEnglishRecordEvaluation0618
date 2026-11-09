@@ -447,12 +447,21 @@ function setupRecorderOnStop() {
 
   mediaRecorder.onstop = () => {
 
-        // 録音終了時刻を取得
+// 録音終了時刻を取得
 const recordingEndTime = new Date().toISOString();
-    // 録音終了時に、認識結果を採点する
+
+// 採点する
 gradeReading(recognitionText.trim());
-    // 録音終了時に、認識結果を採点する
-gradeReading(recognitionText.trim());
+
+// 得点を取得
+const score =
+  parseInt(
+    document.getElementById("score").innerText,
+    10
+  ) || 0;
+
+// 得点に応じた報酬画面を表示
+showReward(score);
 
     // 録音終了：ボタンの表示を元に戻す
     document.getElementById("recordButton").innerText = "録音開始";
