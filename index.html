@@ -77,7 +77,50 @@
     #b5bdc5
   );
 }
+/* ===== 花火アニメーション ===== */
 
+#rewardAnimation {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.firework {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: explode 1.5s ease-out forwards;
+}
+
+@keyframes explode {
+
+  0% {
+    box-shadow: 0 0 0 0 white;
+    opacity: 1;
+    transform: scale(0.1);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    box-shadow:
+      0 -100px 0 2px #ff4444,
+      70px -70px 0 2px #ffff00,
+      100px 0 0 2px #00ffff,
+      70px 70px 0 2px #ff66ff,
+      0 100px 0 2px #ffffff,
+      -70px 70px 0 2px #00ff88,
+      -100px 0 0 2px #ff9900,
+      -70px -70px 0 2px #ffffff;
+    opacity: 0;
+    transform: scale(1);
+  }
+
+}
 </style>
 </head>
 
@@ -966,14 +1009,35 @@ function showReward(score) {
   const screen = document.getElementById("rewardScreen");
   const title = document.getElementById("rewardTitle");
   const message = document.getElementById("rewardMessage");
+  const animation = document.getElementById("rewardAnimation");
 
   screen.style.display = "block";
+  animation.innerHTML = "";
 
   if (score >= 90) {
 
     screen.className = "reward-firework";
     title.innerText = "PERFECT!!";
     message.innerText = "素晴らしい！！";
+
+    // 花火を連続して打ち上げる
+    const timer = setInterval(() => {
+
+      const firework = document.createElement("div");
+      firework.className = "firework";
+
+      firework.style.left = Math.random() * 90 + 5 + "%";
+      firework.style.top = Math.random() * 60 + 10 + "%";
+
+      animation.appendChild(firework);
+
+      setTimeout(() => {
+        firework.remove();
+      }, 1600);
+
+    }, 400);
+
+    screen.dataset.fireworkTimer = timer;
 
   } else if (score >= 60) {
 
@@ -996,9 +1060,15 @@ function showReward(score) {
 
 function closeReward() {
 
-  document.getElementById("rewardScreen").style.display = "none";
+  const screen = document.getElementById("rewardScreen");
 
-}  
+  clearInterval(Number(screen.dataset.fireworkTimer));
+
+  screen.dataset.fireworkTimer = "";
+
+  screen.style.display = "none";
+
+}
 </script>
 
 </body>
