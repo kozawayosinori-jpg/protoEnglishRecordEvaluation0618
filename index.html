@@ -1204,6 +1204,13 @@ function showReward(score) {
 
     // ===== お花とちょうちょ =====
 
+      // ★ お花畑BGMの再生
+    flowerMeadowSound.currentTime = 0;
+
+    flowerMeadowSound.play().catch(error => {
+      console.log("お花畑BGMを再生できませんでした", error);
+    });
+
     screen.className = "reward-flower";
     title.innerText = "GOOD JOB!";
     message.innerText = "よく頑張りました！";
