@@ -359,13 +359,18 @@ let stopRequested = false;
 
 window.onload = function(){
 
-  fetch(GAS_URL)
+ fetch(GAS_URL)
     .then(r => r.json())
     .then(data => {
 
       ORDER_TOLERANCE = data.orderTolerance;
 
       TIME_LIMIT = data.timeLimit || 60;
+
+      // ★ 報酬の最低点を取得
+      FIREWORKS_MIN_SCORE = data.fireworksMinScore;
+      FLOWER_MIN_SCORE = data.flowerMinScore;
+      WIND_MIN_SCORE = data.windMinScore;
 
       document.getElementById("question")
         .innerText = data.questions[0];
