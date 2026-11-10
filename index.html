@@ -1306,6 +1306,10 @@ function closeReward() {
   fanfareSound.pause();
   fanfareSound.currentTime = 0;
 
+    // お花畑BGMを停止
+  flowerMeadowSound.pause();
+  flowerMeadowSound.currentTime = 0;
+
   clearInterval(Number(screen.dataset.fireworkTimer));
   clearInterval(Number(screen.dataset.rewardTimer));
   clearInterval(Number(screen.dataset.butterflyTimer));
