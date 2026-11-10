@@ -1172,7 +1172,7 @@ function showReward(score) {
   screen.style.display = "block";
   animation.innerHTML = "";
 
-  if (score >= 90) {
+  if (score >= FIREWORKS_MIN_SCORE) {
 
     // ===== 花火 =====
 
@@ -1215,7 +1215,7 @@ function showReward(score) {
 
     screen.dataset.fireworkTimer = timer;
 
-  } else if (score >= 60) {
+  } else if (score >= FLOWER_MIN_SCORE) {
 
     // ===== お花とちょうちょ =====
 
