@@ -1134,9 +1134,14 @@ const fanfareSound =
 const flowerMeadowSound =
   new Audio("flower_meadow_bgm.wav");
 
+//木枯らしBGM
+const winterWindSound =
+  new Audio("dragon-studio-blizzard-wind-463217.mp3");
+
 fireworksSound.volume = 0.8;
 fanfareSound.volume = 0.8;
 flowerMeadowSound.volume = 0.8;
+winterWindSound.volume = 0.8;
   
 // ===== 報酬画面の表示 =====
 
@@ -1259,6 +1264,13 @@ function showReward(score) {
  } else {
 
     // ===== 木枯らし =====
+
+     // ★ 木枯らしの風音を再生
+    winterWindSound.currentTime = 0;
+
+    winterWindSound.play().catch(error => {
+      console.log("木枯らしの音声を再生できませんでした", error);
+    });
 
     screen.className = "reward-wind";
     title.innerText = "KEEP TRYING!";
