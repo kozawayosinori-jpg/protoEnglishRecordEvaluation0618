@@ -1322,6 +1322,10 @@ function closeReward() {
   flowerMeadowSound.pause();
   flowerMeadowSound.currentTime = 0;
 
+    // 木枯らしの風音を停止
+  winterWindSound.pause();
+  winterWindSound.currentTime = 0;
+
   clearInterval(Number(screen.dataset.fireworkTimer));
   clearInterval(Number(screen.dataset.rewardTimer));
   clearInterval(Number(screen.dataset.butterflyTimer));
