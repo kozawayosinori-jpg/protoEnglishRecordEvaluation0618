@@ -1122,7 +1122,7 @@ function findMissingWords(correctWords, spokenWords){
 // navigator.mediaDevices.getUserMedia の then の最後で呼ぶ
 // （統合するときに、getUserMedia の then の中で attachOnStop() を呼んでください）
 
-// ===== 花火・ファンファーレ音声 =====
+// ===== 花火・ファンファーレ・お花畑音声 =====
 
 const fireworksSound =
   new Audio("fireworks-and-fireworks-in-the-city.mp3");
@@ -1130,8 +1130,13 @@ const fireworksSound =
 const fanfareSound =
   new Audio("ファンファーレ5.mp3");
 
+// ★ お花畑BGMを追加
+const flowerMeadowSound =
+  new Audio("flower_meadow_bgm.mp3");
+
 fireworksSound.volume = 0.8;
 fanfareSound.volume = 0.8;
+flowerMeadowSound.volume = 0.8;
   
 // ===== 報酬画面の表示 =====
 
